@@ -1,11 +1,27 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require("express");
+const { Worker } = require("worker_threads");
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.get("/non-blocking", (req, res) => {
+  res.status(200).send("This is non-blocking");
+});
+
+app.get("/blocking", (req, res) => {
+  const worker = new Worker("./worker.js");
+
+  // get the data 
+  worker.on("message", (data) => {
+    res.status(200).send(`Result is: ${data}`);
+  });
+
+  // get the error
+  worker.on("error", (err) => {
+    res.status(200).send(`An error occured: ${err}`);
+  });
+});
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+  console.log(`Application is listening on port ${port}`);
+});
